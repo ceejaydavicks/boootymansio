@@ -1,0 +1,6 @@
+{
+  "name": "VideoStudio: Grabber & Thumbnail Gen",
+  "description": "Powerful pipeline for extracting direct video links from any URL and generating high-quality thumbnails from media streams.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
