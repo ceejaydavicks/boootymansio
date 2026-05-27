@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Download, Image, Scissors, ExternalLink, Copy, CheckCircle2, ChevronLeft, Loader2, Film, Clock, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { Download, Copy, CheckCircle2, ChevronLeft, Loader2, AlertCircle, ExternalLink, Image, Scissors, Clock, ThumbsUp, Share2 } from "lucide-react";
 import { VideoItem, Thumbnail } from "../types";
 import VideoCard from "../components/VideoCard";
 
@@ -11,8 +10,15 @@ interface WatchViewProps {
   onBack: () => void;
 }
 
+function formatViews(n: number) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return Math.floor(n / 1000) + "K";
+  return String(n);
+}
+
 export default function WatchView({ video, relatedVideos, onWatch, onBack }: WatchViewProps) {
   const [copied, setCopied] = useState(false);
+  const [activePanel, setActivePanel] = useState<"thumb" | "clip" | null>(null);
 
   const [thumbLoading, setThumbLoading] = useState(false);
   const [thumbError, setThumbError] = useState<string | null>(null);
@@ -20,16 +26,13 @@ export default function WatchView({ video, relatedVideos, onWatch, onBack }: Wat
   const [thumbCount, setThumbCount] = useState(6);
   const [thumbRes, setThumbRes] = useState("640");
   const [selectedThumbs, setSelectedThumbs] = useState<string[]>([]);
-  const [showThumbPanel, setShowThumbPanel] = useState(false);
 
   const [clipLoading, setClipLoading] = useState(false);
   const [clipError, setClipError] = useState<string | null>(null);
   const [clipResult, setClipResult] = useState<string | null>(null);
   const [clipDuration, setClipDuration] = useState(15);
-  const [showClipPanel, setShowClipPanel] = useState(false);
 
-  const filename = video.url.split("/").pop()?.split("?")[0] || "video";
-  const displayTitle = video.title || filename;
+  const domain = (() => { try { return new URL(video.extractedFrom || "").hostname.replace("www.", ""); } catch { return video.source || ""; } })();
 
   const copyUrl = () => {
     navigator.clipboard.writeText(video.url);
@@ -37,331 +40,274 @@ export default function WatchView({ video, relatedVideos, onWatch, onBack }: Wat
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const formatTime = (s: string) => {
+    const n = parseFloat(s);
+    const h = Math.floor(n / 3600), m = Math.floor((n % 3600) / 60), sec = Math.floor(n % 60);
+    return `${h > 0 ? h + ":" : ""}${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+  };
+
   const generateThumbs = async () => {
-    setThumbLoading(true);
-    setThumbError(null);
-    setThumbResults([]);
+    setThumbLoading(true); setThumbError(null); setThumbResults([]); setSelectedThumbs([]);
     try {
-      const res = await fetch("/api/generate-thumbnails", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const r = await fetch("/api/generate-thumbnails", {
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: video.url, count: thumbCount, resolution: thumbRes }),
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setThumbResults(data.thumbnails);
-    } catch (e: any) {
-      setThumbError(e.message || "Thumbnail generation failed.");
-    } finally {
-      setThumbLoading(false);
-    }
+      const d = await r.json();
+      if (d.error) throw new Error(d.error);
+      setThumbResults(d.thumbnails);
+    } catch (e: any) { setThumbError(e.message); }
+    finally { setThumbLoading(false); }
   };
 
   const generateClip = async () => {
-    setClipLoading(true);
-    setClipError(null);
-    setClipResult(null);
+    setClipLoading(true); setClipError(null); setClipResult(null);
     try {
-      const res = await fetch("/api/generate-clip", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const r = await fetch("/api/generate-clip", {
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: video.url, duration: clipDuration }),
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setClipResult(data.url);
-    } catch (e: any) {
-      setClipError(e.message || "Clip generation failed.");
-    } finally {
-      setClipLoading(false);
-    }
+      const d = await r.json();
+      if (d.error) throw new Error(d.error);
+      setClipResult(d.url);
+    } catch (e: any) { setClipError(e.message); }
+    finally { setClipLoading(false); }
   };
 
-  const formatTime = (seconds: string) => {
-    const sec = parseFloat(seconds);
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = Math.floor(sec % 60);
-    return `${h > 0 ? h.toString().padStart(2, "0") + ":" : ""}${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
-
-  const toggleThumbSelect = (url: string) =>
-    setSelectedThumbs((p) => (p.includes(url) ? p.filter((u) => u !== url) : [...p, url]));
+  const toggleThumb = (u: string) => setSelectedThumbs((p) => p.includes(u) ? p.filter((x) => x !== u) : [...p, u]);
 
   return (
-    <div className="flex flex-col gap-0">
+    <div className="max-w-[1600px] mx-auto px-4 py-4">
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-zinc-400 hover:text-white text-sm mb-4 transition-colors w-fit"
+        className="flex items-center gap-1.5 text-sm mb-4 transition-colors hover:text-white"
+        style={{ color: "#888" }}
       >
-        <ChevronLeft size={16} /> Back
+        <ChevronLeft size={16} /> Back to videos
       </button>
 
       <div className="flex flex-col xl:flex-row gap-6">
-        <div className="flex-1 min-w-0 flex flex-col gap-5">
-          <div className="w-full aspect-video bg-black rounded-2xl overflow-hidden border border-white/5 shadow-2xl">
+        <div className="flex-1 min-w-0">
+          <div
+            className="w-full rounded-lg overflow-hidden"
+            style={{ background: "#000", aspectRatio: "16/9" }}
+          >
             <video
               key={video.url}
               src={video.url}
               controls
               autoPlay
               className="w-full h-full"
-              onError={() => {}}
+              style={{ display: "block" }}
             />
           </div>
 
-          <div>
-            <h1 className="text-white font-bold text-xl leading-snug mb-2">{displayTitle}</h1>
-            <div className="flex flex-wrap items-center gap-2 mb-4">
-              <span className="px-2 py-1 bg-red-600/20 text-red-400 text-xs font-bold rounded-full uppercase">
-                {video.type || "video"}
-              </span>
-              <span className="px-2 py-1 bg-zinc-800 text-zinc-400 text-xs rounded-full">
-                {video.label}
-              </span>
-              <span className="px-2 py-1 bg-zinc-800 text-zinc-400 text-xs rounded-full truncate max-w-xs">
-                {video.source}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <a
-                href={video.url}
-                download
-                className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-xl transition-colors"
-              >
-                <Download size={16} /> Download
-              </a>
-              <button
-                onClick={copyUrl}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl transition-colors ${
-                  copied ? "bg-green-600 text-white" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
-                }`}
-              >
-                {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
-                {copied ? "Copied!" : "Copy URL"}
-              </button>
-              <a
-                href={video.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-semibold rounded-xl transition-colors"
-              >
-                <ExternalLink size={16} /> Open
-              </a>
-              <button
-                onClick={() => { setShowThumbPanel((p) => !p); setShowClipPanel(false); }}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl transition-colors ${
-                  showThumbPanel ? "bg-blue-600 text-white" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
-                }`}
-              >
-                <Image size={16} /> Thumbnails
-              </button>
-              <button
-                onClick={() => { setShowClipPanel((p) => !p); setShowThumbPanel(false); }}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl transition-colors ${
-                  showClipPanel ? "bg-purple-600 text-white" : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
-                }`}
-              >
-                <Scissors size={16} /> Create Clip
-              </button>
+          <div className="mt-4">
+            <h1 className="text-lg font-bold text-white leading-snug">{video.title}</h1>
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-2">
+              <div className="flex items-center gap-3 text-sm" style={{ color: "#888" }}>
+                <span>{formatViews(video.views || 0)} views</span>
+                <span>·</span>
+                <span>{domain}</span>
+                <span
+                  className="px-2 py-0.5 rounded text-xs font-bold text-white uppercase"
+                  style={{ background: "#f30" }}
+                >
+                  {video.type || "video"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ background: "#252525", color: "#bbb" }}
+                >
+                  <ThumbsUp size={14} /> Like
+                </button>
+                <button
+                  onClick={copyUrl}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-semibold transition-colors"
+                  style={{ background: copied ? "#1a3d1a" : "#252525", color: copied ? "#5f5" : "#bbb" }}
+                >
+                  {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+                  {copied ? "Copied" : "Copy URL"}
+                </button>
+                <a
+                  href={video.url}
+                  download
+                  className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-semibold transition-opacity hover:opacity-80"
+                  style={{ background: "#f30", color: "#fff" }}
+                >
+                  <Download size={14} /> Download
+                </a>
+                <a
+                  href={video.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 flex items-center justify-center rounded transition-colors hover:bg-white/10"
+                  style={{ background: "#252525", color: "#bbb" }}
+                >
+                  <ExternalLink size={14} />
+                </a>
+              </div>
             </div>
           </div>
 
-          <AnimatePresence>
-            {showThumbPanel && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden"
-              >
-                <div className="p-5 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <Image size={18} className="text-blue-400" />
-                    <h3 className="text-white font-semibold">Thumbnail Generator</h3>
-                    {selectedThumbs.length > 0 && (
-                      <span className="px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full">
-                        {selectedThumbs.length} selected
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={thumbCount}
-                      onChange={(e) => setThumbCount(parseInt(e.target.value))}
-                      className="bg-zinc-800 border border-white/10 text-zinc-300 text-xs rounded-lg px-3 py-2 outline-none"
-                    >
-                      {[6, 10, 15, 20].map((c) => <option key={c} value={c}>{c} frames</option>)}
-                    </select>
-                    <select
-                      value={thumbRes}
-                      onChange={(e) => setThumbRes(e.target.value)}
-                      className="bg-zinc-800 border border-white/10 text-zinc-300 text-xs rounded-lg px-3 py-2 outline-none"
-                    >
-                      <option value="320">320px</option>
-                      <option value="640">640px</option>
-                      <option value="1280">1280px</option>
-                    </select>
-                    {selectedThumbs.length > 0 && (
-                      <a
-                        href={selectedThumbs[0]}
-                        download
-                        className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1"
-                      >
-                        <Download size={12} /> Download ({selectedThumbs.length})
-                      </a>
-                    )}
-                    <button
-                      onClick={generateThumbs}
-                      disabled={thumbLoading}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
-                    >
-                      {thumbLoading ? <Loader2 size={12} className="animate-spin" /> : <Image size={12} />}
-                      Generate
-                    </button>
-                  </div>
-                </div>
-                <div className="p-5">
-                  {thumbError && (
-                    <div className="flex items-center gap-2 text-red-400 text-sm mb-4">
-                      <AlertCircle size={14} /> {thumbError}
-                    </div>
-                  )}
-                  {thumbLoading && (
-                    <div className="flex items-center justify-center py-12 gap-3 text-blue-400">
-                      <Loader2 size={24} className="animate-spin" />
-                      <span className="text-sm">Analyzing frames...</span>
-                    </div>
-                  )}
-                  {!thumbLoading && thumbResults.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                      {thumbResults.map((thumb, idx) => {
-                        const sel = selectedThumbs.includes(thumb.url);
-                        return (
-                          <div
-                            key={idx}
-                            onClick={() => toggleThumbSelect(thumb.url)}
-                            className={`relative aspect-video rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
-                              sel ? "border-blue-500 ring-2 ring-blue-500/30" : "border-transparent hover:border-zinc-600"
-                            }`}
-                          >
-                            <img src={thumb.url} alt={`Frame ${idx}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                            {sel && (
-                              <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                                <CheckCircle2 size={12} className="text-white" />
-                              </div>
-                            )}
-                            <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 bg-black/70 px-1.5 py-0.5 rounded text-[10px] text-zinc-300">
-                              <Clock size={8} /> {formatTime(thumb.timestamp)}
-                            </div>
-                            <a
-                              href={thumb.url}
-                              download
-                              onClick={(e) => e.stopPropagation()}
-                              className="absolute bottom-1.5 right-1.5 w-6 h-6 bg-white/10 hover:bg-blue-500 rounded flex items-center justify-center transition-colors"
-                            >
-                              <Download size={10} className="text-white" />
-                            </a>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {!thumbLoading && thumbResults.length === 0 && !thumbError && (
-                    <div className="text-center py-8 text-zinc-600 text-sm">
-                      Hit Generate to extract frame previews from this video
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="flex gap-2 mt-4 flex-wrap" style={{ borderTop: "1px solid #222", paddingTop: 16 }}>
+            <button
+              onClick={() => setActivePanel(activePanel === "thumb" ? null : "thumb")}
+              className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors"
+              style={{
+                background: activePanel === "thumb" ? "rgba(0,120,255,0.2)" : "#1e1e1e",
+                border: `1px solid ${activePanel === "thumb" ? "#0078ff" : "#2a2a2a"}`,
+                color: activePanel === "thumb" ? "#4af" : "#aaa",
+              }}
+            >
+              <Image size={15} /> Generate Thumbnails
+            </button>
+            <button
+              onClick={() => setActivePanel(activePanel === "clip" ? null : "clip")}
+              className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors"
+              style={{
+                background: activePanel === "clip" ? "rgba(160,0,255,0.2)" : "#1e1e1e",
+                border: `1px solid ${activePanel === "clip" ? "#a0f" : "#2a2a2a"}`,
+                color: activePanel === "clip" ? "#c4f" : "#aaa",
+              }}
+            >
+              <Scissors size={15} /> Create Clip
+            </button>
+          </div>
 
-          <AnimatePresence>
-            {showClipPanel && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden"
-              >
-                <div className="p-5 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <Scissors size={18} className="text-purple-400" />
-                    <h3 className="text-white font-semibold">Clip Maker</h3>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={clipDuration}
-                      onChange={(e) => setClipDuration(parseInt(e.target.value))}
-                      className="bg-zinc-800 border border-white/10 text-zinc-300 text-xs rounded-lg px-3 py-2 outline-none"
-                    >
-                      {[9, 12, 15, 18].map((d) => <option key={d} value={d}>{d}s mashup</option>)}
-                    </select>
-                    <button
-                      onClick={generateClip}
-                      disabled={clipLoading}
-                      className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5"
-                    >
-                      {clipLoading ? <Loader2 size={12} className="animate-spin" /> : <Scissors size={12} />}
-                      {clipLoading ? "Generating..." : "Create Clip"}
-                    </button>
-                  </div>
+          {activePanel === "thumb" && (
+            <div className="mt-4 rounded-lg overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3" style={{ borderBottom: "1px solid #222" }}>
+                <span className="text-sm font-bold text-white flex items-center gap-2"><Image size={14} style={{ color: "#4af" }} /> Thumbnail Generator</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select value={thumbCount} onChange={(e) => setThumbCount(+e.target.value)}
+                    className="text-xs px-2 py-1.5 rounded outline-none" style={{ background: "#111", border: "1px solid #333", color: "#ccc" }}>
+                    {[6, 10, 15, 20].map((c) => <option key={c} value={c}>{c} frames</option>)}
+                  </select>
+                  <select value={thumbRes} onChange={(e) => setThumbRes(e.target.value)}
+                    className="text-xs px-2 py-1.5 rounded outline-none" style={{ background: "#111", border: "1px solid #333", color: "#ccc" }}>
+                    <option value="320">320px</option>
+                    <option value="640">640px</option>
+                    <option value="1280">1280px</option>
+                  </select>
+                  {selectedThumbs.length > 0 && (
+                    <a href={selectedThumbs[0]} download className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold"
+                      style={{ background: "#4af", color: "#000" }}>
+                      <Download size={12} /> {selectedThumbs.length}
+                    </a>
+                  )}
+                  <button onClick={generateThumbs} disabled={thumbLoading}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold disabled:opacity-50"
+                    style={{ background: "#0078ff", color: "#fff" }}>
+                    {thumbLoading ? <Loader2 size={12} className="animate-spin" /> : <Image size={12} />}
+                    Generate
+                  </button>
                 </div>
-                <div className="p-5">
-                  {clipError && (
-                    <div className="flex items-center gap-2 text-red-400 text-sm mb-4">
-                      <AlertCircle size={14} /> {clipError}
-                    </div>
-                  )}
-                  {clipLoading && (
-                    <div className="flex items-center justify-center py-12 gap-3 text-purple-400">
-                      <Loader2 size={24} className="animate-spin" />
-                      <span className="text-sm">Splicing start, middle & end segments...</span>
-                    </div>
-                  )}
-                  {!clipLoading && clipResult && (
-                    <div className="space-y-4">
-                      <div className="aspect-video bg-black rounded-xl overflow-hidden border border-white/5">
-                        <video key={clipResult} src={clipResult} controls autoPlay className="w-full h-full" />
-                      </div>
-                      <div className="flex gap-3 justify-center">
-                        <a
-                          href={clipResult}
-                          download={`clip_${clipDuration}s.mp4`}
-                          className="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm rounded-xl flex items-center gap-2 transition-colors"
-                        >
-                          <Download size={16} /> Download MP4
-                        </a>
-                        <button
-                          onClick={() => setClipResult(null)}
-                          className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-semibold text-sm rounded-xl transition-colors"
-                        >
-                          Reset
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                  {!clipLoading && !clipResult && !clipError && (
-                    <div className="text-center py-8 text-zinc-600 text-sm">
-                      Creates a highlight mashup from the start, middle, and end of this video
-                    </div>
-                  )}
+              </div>
+              <div className="p-4">
+                {thumbError && <div className="text-sm mb-3 flex items-center gap-2" style={{ color: "#f77" }}><AlertCircle size={13} />{thumbError}</div>}
+                {thumbLoading && <div className="flex items-center justify-center py-10 gap-2" style={{ color: "#4af" }}><Loader2 size={22} className="animate-spin" /><span className="text-sm">Analyzing frames...</span></div>}
+                {!thumbLoading && thumbResults.length > 0 && (
+                  <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))" }}>
+                    {thumbResults.map((t, i) => {
+                      const sel = selectedThumbs.includes(t.url);
+                      return (
+                        <div key={i} onClick={() => toggleThumb(t.url)}
+                          className="relative cursor-pointer rounded overflow-hidden"
+                          style={{ aspectRatio: "16/9", border: `2px solid ${sel ? "#4af" : "transparent"}` }}>
+                          <img src={t.url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          {sel && <div className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center" style={{ background: "#4af" }}><CheckCircle2 size={10} className="text-white" /></div>}
+                          <div className="absolute bottom-1 left-1 text-white flex items-center gap-0.5" style={{ background: "rgba(0,0,0,0.8)", fontSize: 9, padding: "1px 4px", borderRadius: 2 }}>
+                            <Clock size={7} /> {formatTime(t.timestamp)}
+                          </div>
+                          <a href={t.url} download onClick={(e) => e.stopPropagation()}
+                            className="absolute bottom-1 right-1 w-5 h-5 rounded flex items-center justify-center transition-colors hover:opacity-80"
+                            style={{ background: "rgba(0,120,255,0.8)" }}>
+                            <Download size={9} className="text-white" />
+                          </a>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {!thumbLoading && thumbResults.length === 0 && !thumbError && (
+                  <p className="text-center text-sm py-8" style={{ color: "#555" }}>Click Generate to extract frame previews</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activePanel === "clip" && (
+            <div className="mt-4 rounded-lg overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3" style={{ borderBottom: "1px solid #222" }}>
+                <span className="text-sm font-bold text-white flex items-center gap-2"><Scissors size={14} style={{ color: "#c4f" }} /> Clip Maker</span>
+                <div className="flex items-center gap-2">
+                  <select value={clipDuration} onChange={(e) => setClipDuration(+e.target.value)}
+                    className="text-xs px-2 py-1.5 rounded outline-none" style={{ background: "#111", border: "1px solid #333", color: "#ccc" }}>
+                    {[9, 12, 15, 18].map((d) => <option key={d} value={d}>{d}s mashup</option>)}
+                  </select>
+                  <button onClick={generateClip} disabled={clipLoading}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-semibold disabled:opacity-50"
+                    style={{ background: "#a00fff", color: "#fff" }}>
+                    {clipLoading ? <Loader2 size={12} className="animate-spin" /> : <Scissors size={12} />}
+                    {clipLoading ? "Generating..." : "Create Clip"}
+                  </button>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+              <div className="p-4">
+                {clipError && <div className="text-sm mb-3 flex items-center gap-2" style={{ color: "#f77" }}><AlertCircle size={13} />{clipError}</div>}
+                {clipLoading && <div className="flex items-center justify-center py-10 gap-2" style={{ color: "#c4f" }}><Loader2 size={22} className="animate-spin" /><span className="text-sm">Splicing start, middle &amp; end...</span></div>}
+                {!clipLoading && clipResult && (
+                  <div className="space-y-3">
+                    <div className="rounded overflow-hidden" style={{ background: "#000", aspectRatio: "16/9" }}>
+                      <video key={clipResult} src={clipResult} controls autoPlay className="w-full h-full" />
+                    </div>
+                    <div className="flex gap-2">
+                      <a href={clipResult} download={`clip_${clipDuration}s.mp4`}
+                        className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold"
+                        style={{ background: "#a00fff", color: "#fff" }}>
+                        <Download size={15} /> Download MP4
+                      </a>
+                      <button onClick={() => setClipResult(null)}
+                        className="px-4 py-2 rounded text-sm font-semibold"
+                        style={{ background: "#252525", color: "#aaa" }}>
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {!clipLoading && !clipResult && !clipError && (
+                  <p className="text-center text-sm py-8" style={{ color: "#555" }}>Creates a {clipDuration}s highlight from start, middle &amp; end</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4 p-4 rounded-lg text-xs" style={{ background: "#1a1a1a", border: "1px solid #222", color: "#555" }}>
+            <strong style={{ color: "#888" }}>Source:</strong> {video.extractedFrom || video.source} &nbsp;·&nbsp;
+            <strong style={{ color: "#888" }}>Label:</strong> {video.label} &nbsp;·&nbsp;
+            <strong style={{ color: "#888" }}>Type:</strong> {video.type?.toUpperCase()}
+          </div>
         </div>
 
-        {relatedVideos.length > 0 && (
-          <aside className="xl:w-96 flex-shrink-0 flex flex-col gap-3">
-            <h2 className="text-white font-semibold text-sm">More videos</h2>
-            {relatedVideos.filter((v) => v.id !== video.id).slice(0, 12).map((v) => (
+        <aside className="xl:w-80 flex-shrink-0">
+          <h2 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+            Related Videos
+            <span className="text-xs font-normal" style={{ color: "#666" }}>{relatedVideos.length} videos</span>
+          </h2>
+          <div className="flex flex-col gap-1">
+            {relatedVideos.slice(0, 20).map((v) => (
               <VideoCard key={v.id} video={v} onWatch={onWatch} compact />
             ))}
-          </aside>
-        )}
+          </div>
+          {relatedVideos.length === 0 && (
+            <p className="text-sm text-center py-8" style={{ color: "#555" }}>
+              No related videos. Add more URLs to grow your library.
+            </p>
+          )}
+        </aside>
       </div>
     </div>
   );

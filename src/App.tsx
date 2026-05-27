@@ -1,27 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Page, VideoItem } from "./types";
 import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
 import HomeView from "./views/HomeView";
-import BrowseView from "./views/BrowseView";
 import WatchView from "./views/WatchView";
 import ToolsView from "./views/ToolsView";
+import AddUrlModal from "./components/AddUrlModal";
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
   const [allVideos, setAllVideos] = useState<VideoItem[]>([]);
   const [currentVideos, setCurrentVideos] = useState<VideoItem[]>([]);
   const [currentVideo, setCurrentVideo] = useState<VideoItem | null>(null);
-  const [currentPageTitle, setCurrentPageTitle] = useState("");
-
+  const [showAddModal, setShowAddModal] = useState(false);
   const [extractLoading, setExtractLoading] = useState(false);
   const [extractError, setExtractError] = useState<string | null>(null);
-  const [pendingUrl, setPendingUrl] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [sortBy, setSortBy] = useState<"new" | "az">("new");
 
   useEffect(() => {
-    const saved = localStorage.getItem("vidtube_library");
+    const saved = localStorage.getItem("vidtube_v2_library");
     if (saved) {
       try { setAllVideos(JSON.parse(saved)); } catch {}
     }
@@ -29,16 +26,12 @@ export default function App() {
 
   const saveVideos = (videos: VideoItem[]) => {
     setAllVideos(videos);
-    localStorage.setItem("vidtube_library", JSON.stringify(videos.slice(0, 200)));
+    localStorage.setItem("vidtube_v2_library", JSON.stringify(videos.slice(0, 300)));
   };
 
   const handleExtract = async (url: string, mode: "fast" | "deep" = "fast") => {
     setExtractLoading(true);
     setExtractError(null);
-    setCurrentVideos([]);
-    setCurrentPageTitle("");
-    setPage("browse");
-
     try {
       const res = await fetch("/api/extract", {
         method: "POST",
@@ -51,27 +44,30 @@ export default function App() {
       const newVideos: VideoItem[] = (data.results || []).map((r: any) => ({
         id: Math.random().toString(36).slice(2),
         url: r.url,
-        type: r.type,
+        type: r.type?.toLowerCase() || "video",
         label: r.label,
         source: r.source,
-        title: r.url.split("/").pop()?.split("?")[0] || "video",
+        title: r.url.split("/").pop()?.split("?")[0]?.replace(/[-_]/g, " ").replace(/\.[^.]+$/, "") || "Video",
         pageTitle: data.pageTitle,
         extractedFrom: url,
         extractedAt: Date.now(),
+        views: Math.floor(Math.random() * 900000) + 1000,
       }));
 
-      setCurrentVideos(newVideos);
-      setCurrentPageTitle(data.pageTitle || url);
-
-      if (newVideos.length > 0) {
-        const existingUrls = new Set(allVideos.map((v) => v.url));
-        const fresh = newVideos.filter((v) => !existingUrls.has(v.url));
-        saveVideos([...fresh, ...allVideos]);
-      } else {
-        setExtractError("No video links found on this page. Try Deep mode for JavaScript-rendered content.");
+      if (newVideos.length === 0) {
+        setExtractError("No videos found on this page. Try switching to Deep mode for JavaScript-heavy sites.");
+        return;
       }
+
+      const existingUrls = new Set(allVideos.map((v) => v.url));
+      const fresh = newVideos.filter((v) => !existingUrls.has(v.url));
+      const updated = [...fresh, ...allVideos];
+      saveVideos(updated);
+      setCurrentVideos(newVideos);
+      setExtractError(null);
+      setShowAddModal(false);
     } catch (e: any) {
-      setExtractError(e.message || "Failed to extract videos.");
+      setExtractError(e.message || "Extraction failed.");
     } finally {
       setExtractLoading(false);
     }
@@ -81,81 +77,69 @@ export default function App() {
     setCurrentVideo(video);
     setPage("watch");
     window.scrollTo({ top: 0, behavior: "smooth" });
+    const updated = allVideos.map((v) =>
+      v.id === video.id ? { ...v, views: (v.views || 0) + 1 } : v
+    );
+    saveVideos(updated);
   };
 
-  const handleNavigate = (p: Page, url?: string) => {
-    if (url) {
-      handleExtract(url);
-    } else {
-      setPage(p);
+  const handleSearch = (query: string) => {
+    if (query.startsWith("http")) {
+      handleExtract(query);
+      setShowAddModal(false);
     }
   };
 
-  const handleSearch = (url: string) => {
-    handleExtract(url);
-  };
+  const categories = ["all", ...Array.from(new Set(allVideos.map((v) => v.type).filter(Boolean)))];
 
-  const handleBack = () => {
-    if (currentVideos.length > 0) {
-      setPage("browse");
-    } else {
-      setPage("home");
-    }
-  };
-
-  const relatedVideos =
-    currentVideo && currentVideos.length > 0
-      ? currentVideos
-      : allVideos;
+  const displayVideos = allVideos
+    .filter((v) => activeCategory === "all" || v.type === activeCategory)
+    .sort((a, b) => sortBy === "new" ? b.extractedAt - a.extractedAt : a.title.localeCompare(b.title));
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] text-white">
+    <div className="min-h-screen" style={{ background: "#141414", color: "#e0e0e0" }}>
       <Header
-        onNavigate={handleNavigate}
-        onToggleSidebar={() => setSidebarOpen((p) => !p)}
         onSearch={handleSearch}
+        onAddUrl={() => setShowAddModal(true)}
+        onHome={() => { setPage("home"); }}
+        onTools={() => setPage("tools")}
       />
 
-      <div className="flex pt-14 min-h-screen">
-        <Sidebar
-          open={sidebarOpen}
-          currentPage={page}
-          onNavigate={setPage}
-          recentVideos={allVideos}
+      {page === "home" && (
+        <HomeView
+          videos={displayVideos}
+          allVideos={allVideos}
+          categories={categories}
+          activeCategory={activeCategory}
+          sortBy={sortBy}
+          onCategoryChange={setActiveCategory}
+          onSortChange={setSortBy}
           onWatch={handleWatch}
+          onAddUrl={() => setShowAddModal(true)}
         />
+      )}
+      {page === "watch" && currentVideo && (
+        <WatchView
+          video={currentVideo}
+          relatedVideos={allVideos.filter((v) => v.id !== currentVideo.id)}
+          onWatch={handleWatch}
+          onBack={() => setPage("home")}
+        />
+      )}
+      {page === "tools" && (
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <ToolsView />
+        </div>
+      )}
 
-        <main className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 overflow-x-hidden">
-          {page === "home" && (
-            <HomeView
-              allVideos={allVideos}
-              onWatch={handleWatch}
-              onNavigate={handleNavigate}
-              onExtract={handleExtract}
-            />
-          )}
-          {page === "browse" && (
-            <BrowseView
-              videos={currentVideos}
-              loading={extractLoading}
-              error={extractError}
-              currentPageTitle={currentPageTitle}
-              onExtract={handleExtract}
-              onWatch={handleWatch}
-              initialUrl={pendingUrl}
-            />
-          )}
-          {page === "watch" && currentVideo && (
-            <WatchView
-              video={currentVideo}
-              relatedVideos={relatedVideos}
-              onWatch={handleWatch}
-              onBack={handleBack}
-            />
-          )}
-          {page === "tools" && <ToolsView />}
-        </main>
-      </div>
+      {showAddModal && (
+        <AddUrlModal
+          onClose={() => { setShowAddModal(false); setExtractError(null); }}
+          onExtract={handleExtract}
+          loading={extractLoading}
+          error={extractError}
+        />
+      )}
     </div>
   );
 }

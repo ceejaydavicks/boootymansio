@@ -8,6 +8,8 @@ export interface VideoItem {
   extractedFrom?: string;
   pageTitle?: string;
   extractedAt: number;
+  views?: number;
+  duration?: string;
 }
 
 export interface Thumbnail {
@@ -15,4 +17,4 @@ export interface Thumbnail {
   timestamp: string;
 }
 
-export type Page = 'home' | 'browse' | 'watch' | 'tools';
+export type Page = "home" | "watch" | "tools";
