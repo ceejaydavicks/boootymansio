@@ -1,10 +1,78 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Page, VideoItem } from "./types";
 import Header from "./components/Header";
 import HomeView from "./views/HomeView";
 import WatchView from "./views/WatchView";
 import ToolsView from "./views/ToolsView";
 import AddUrlModal from "./components/AddUrlModal";
+
+const SAMPLE_VIDEOS: VideoItem[] = [
+  {
+    id: "sample-1",
+    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "Google Sample Videos",
+    title: "Big Buck Bunny",
+    pageTitle: "Sample Videos",
+    extractedFrom: "https://goo.gl/sample",
+    extractedAt: Date.now() - 86400000 * 5,
+    views: 842317,
+    duration: "9:56",
+  },
+  {
+    id: "sample-2",
+    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "Google Sample Videos",
+    title: "Elephants Dream",
+    pageTitle: "Sample Videos",
+    extractedFrom: "https://goo.gl/sample",
+    extractedAt: Date.now() - 86400000 * 4,
+    views: 519420,
+    duration: "10:54",
+  },
+  {
+    id: "sample-3",
+    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "Google Sample Videos",
+    title: "For Bigger Blazes",
+    pageTitle: "Sample Videos",
+    extractedFrom: "https://goo.gl/sample",
+    extractedAt: Date.now() - 86400000 * 3,
+    views: 293104,
+    duration: "0:15",
+  },
+  {
+    id: "sample-4",
+    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "Google Sample Videos",
+    title: "For Bigger Escapes",
+    pageTitle: "Sample Videos",
+    extractedFrom: "https://goo.gl/sample",
+    extractedAt: Date.now() - 86400000 * 2,
+    views: 174882,
+    duration: "0:15",
+  },
+  {
+    id: "sample-5",
+    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "Google Sample Videos",
+    title: "Subaru Outback On Street And Dirt",
+    pageTitle: "Sample Videos",
+    extractedFrom: "https://goo.gl/sample",
+    extractedAt: Date.now() - 86400000 * 1,
+    views: 98651,
+    duration: "0:56",
+  },
+];
 
 export default function App() {
   const [page, setPage] = useState<Page>("home");
@@ -20,8 +88,15 @@ export default function App() {
   useEffect(() => {
     const saved = localStorage.getItem("vidtube_v2_library");
     if (saved) {
-      try { setAllVideos(JSON.parse(saved)); } catch {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.length > 0) {
+          setAllVideos(parsed);
+          return;
+        }
+      } catch {}
     }
+    setAllVideos(SAMPLE_VIDEOS);
   }, []);
 
   const saveVideos = (videos: VideoItem[]) => {
