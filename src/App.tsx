@@ -32,6 +32,19 @@ const INITIAL_VIDEOS: VideoItem[] = [
     views: 0,
     thumbnail: "https://ticdn.net/splash/98vkekjaqkhvz17g.jpg",
   },
+  {
+    id: "vid-suv-1",
+    shareId: "suv3k9m2xp",
+    url: "https://cdn.videy.co/tN1S51Zy1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn.videy.co",
+    title: "Testing the new SUV",
+    extractedFrom: "https://cdn.videy.co/tN1S51Zy1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/dxq8lr3yzjoiwber.jpg",
+  },
 ];
 
 type AppMode = "loading" | "public" | "admin" | "redirect";
@@ -68,7 +81,9 @@ export default function App() {
           ...v,
           shareId: v.shareId || genShareId(),
         }));
-        setAllVideos(withShareIds.length > 0 ? withShareIds : INITIAL_VIDEOS);
+        const savedIds = new Set(withShareIds.map((v) => v.id));
+        const missingInitial = INITIAL_VIDEOS.filter((v) => !savedIds.has(v.id));
+        setAllVideos([...missingInitial, ...withShareIds]);
       } catch {
         localStorage.removeItem("vidtube_v5_library");
         setAllVideos(INITIAL_VIDEOS);
