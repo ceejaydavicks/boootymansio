@@ -7,14 +7,16 @@ import ToolsView from "./views/ToolsView";
 import PublicWatchView from "./views/PublicWatchView";
 import AddUrlModal from "./components/AddUrlModal";
 
+const ADMIN_CODE = "BM9x2kqZ7p";
+const SMART_LINK = "https://www.effectivecpmnetwork.com/h9xw8i8f?key=1419765068d7b1dbd1e3d5e01e3b7a94";
+
 function genShareId(): string {
   return Math.random().toString(36).slice(2, 7) + Math.random().toString(36).slice(2, 7);
 }
 
 function getShareUrl(shareId: string): string {
-  return `${window.location.origin}${window.location.pathname}?v=${shareId}`;
+  return `https://boootymansio.pages.dev/?v=${shareId}`;
 }
-
 
 const INITIAL_VIDEOS: VideoItem[] = [
   {
@@ -32,8 +34,10 @@ const INITIAL_VIDEOS: VideoItem[] = [
   },
 ];
 
+type AppMode = "loading" | "public" | "admin" | "redirect";
+
 export default function App() {
-  const [publicMode, setPublicMode] = useState(false);
+  const [mode, setMode] = useState<AppMode>("loading");
   const [publicShareId, setPublicShareId] = useState<string | null>(null);
   const [page, setPage] = useState<Page>("home");
   const [allVideos, setAllVideos] = useState<VideoItem[]>([]);
@@ -47,9 +51,17 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const vParam = params.get("v");
+    const adminParam = params.get("admin");
+
     if (vParam) {
-      setPublicMode(true);
       setPublicShareId(vParam);
+      setMode("public");
+    } else if (adminParam === ADMIN_CODE) {
+      setMode("admin");
+    } else {
+      setMode("redirect");
+      window.location.replace(SMART_LINK);
+      return;
     }
 
     const saved = localStorage.getItem("vidtube_v3_library");
@@ -71,19 +83,19 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!publicMode && allVideos.length > 0) {
+    if (mode === "admin" && allVideos.length > 0) {
       localStorage.setItem("vidtube_v3_library", JSON.stringify(allVideos.slice(0, 300)));
     }
-  }, [allVideos, publicMode]);
+  }, [allVideos, mode]);
 
-  const handleExtract = async (url: string, mode: "fast" | "deep" = "fast") => {
+  const handleExtract = async (url: string, extractMode: "fast" | "deep" = "fast") => {
     setExtractLoading(true);
     setExtractError(null);
     try {
       const res = await fetch("/api/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, mode }),
+        body: JSON.stringify({ url, mode: extractMode }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -129,15 +141,15 @@ export default function App() {
   };
 
   const handleSearch = (query: string) => {
-    if (query.startsWith("http")) {
-      handleExtract(query);
-    }
+    if (query.startsWith("http")) handleExtract(query);
   };
 
-  if (publicMode) {
-    const video = allVideos.find((v) => v.shareId === publicShareId)
-      || SAMPLE_VIDEOS.find((v) => v.shareId === publicShareId)
-      || null;
+  if (mode === "loading" || mode === "redirect") {
+    return null;
+  }
+
+  if (mode === "public") {
+    const video = allVideos.find((v) => v.shareId === publicShareId) ?? null;
     const shareUrl = publicShareId ? getShareUrl(publicShareId) : "";
     return <PublicWatchView video={video} shareUrl={shareUrl} />;
   }
