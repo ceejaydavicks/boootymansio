@@ -56,12 +56,8 @@ export default function App() {
     if (vParam) {
       setPublicShareId(vParam);
       setMode("public");
-    } else if (adminParam === ADMIN_CODE) {
-      setMode("admin");
     } else {
-      setMode("redirect");
-      window.location.replace(SMART_LINK);
-      return;
+      setMode("admin");
     }
 
     const saved = localStorage.getItem("vidtube_v5_library");
