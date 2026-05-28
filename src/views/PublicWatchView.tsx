@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Play, Copy, CheckCircle2, Download, ExternalLink, Link2, AlertTriangle, Zap, Gift } from "lucide-react";
+import { CheckCircle2, Link2, AlertTriangle, Zap, Gift } from "lucide-react";
 import { isEmbedUrl } from "../utils/player";
 import { VideoItem } from "../types";
 import NativeAd from "../components/NativeAd";
@@ -19,19 +19,11 @@ function formatViews(n: number) {
 
 export default function PublicWatchView({ video, shareUrl }: PublicWatchViewProps) {
   const [copiedShare, setCopiedShare] = useState(false);
-  const [copiedUrl, setCopiedUrl] = useState(false);
 
   const copyShare = () => {
     navigator.clipboard.writeText(shareUrl);
     setCopiedShare(true);
     setTimeout(() => setCopiedShare(false), 2500);
-  };
-
-  const copyVideoUrl = () => {
-    if (!video) return;
-    navigator.clipboard.writeText(video.url);
-    setCopiedUrl(true);
-    setTimeout(() => setCopiedUrl(false), 2500);
   };
 
   return (
@@ -143,37 +135,6 @@ export default function PublicWatchView({ video, shareUrl }: PublicWatchViewProp
                   {copiedShare ? "Link Copied!" : "Copy Share Link"}
                 </button>
 
-                <button
-                  onClick={copyVideoUrl}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded text-sm font-semibold transition-all"
-                  style={{
-                    background: copiedUrl ? "#1a3a1a" : "#1e1e1e",
-                    border: `1px solid ${copiedUrl ? "#2a5a2a" : "#2a2a2a"}`,
-                    color: copiedUrl ? "#5f5" : "#ccc",
-                  }}
-                >
-                  {copiedUrl ? <CheckCircle2 size={15} /> : <Copy size={15} />}
-                  {copiedUrl ? "Copied!" : "Copy Direct URL"}
-                </button>
-
-                <a
-                  href={video.url}
-                  download
-                  className="flex items-center gap-2 px-4 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-80"
-                  style={{ background: "#f30", color: "#fff" }}
-                >
-                  <Download size={15} /> Download
-                </a>
-
-                <a
-                  href={video.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2.5 rounded text-sm font-semibold"
-                  style={{ background: "#1e1e1e", border: "1px solid #2a2a2a", color: "#ccc" }}
-                >
-                  <ExternalLink size={15} /> Open Source
-                </a>
               </div>
 
               <div className="flex gap-3 mt-5 flex-wrap">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Copy, CheckCircle2, ChevronLeft, Loader2, AlertCircle, ExternalLink, Image, Scissors, Clock, ThumbsUp, Link2, Zap, Gift } from "lucide-react";
+import { CheckCircle2, ChevronLeft, Loader2, AlertCircle, Image, Scissors, Clock, ThumbsUp, Link2, Zap, Gift, Download, Copy, ExternalLink } from "lucide-react";
 import { isEmbedUrl } from "../utils/player";
 import { VideoItem, Thumbnail } from "../types";
 import VideoCard from "../components/VideoCard";
@@ -22,7 +22,6 @@ function formatViews(n: number) {
 }
 
 export default function WatchView({ video, relatedVideos, onWatch, onBack, shareUrl }: WatchViewProps) {
-  const [copied, setCopied] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
   const [activePanel, setActivePanel] = useState<"thumb" | "clip" | null>(null);
 
@@ -39,12 +38,6 @@ export default function WatchView({ video, relatedVideos, onWatch, onBack, share
   const [clipDuration, setClipDuration] = useState(15);
 
   const domain = (() => { try { return new URL(video.extractedFrom || "").hostname.replace("www.", ""); } catch { return video.source || ""; } })();
-
-  const copyUrl = () => {
-    navigator.clipboard.writeText(video.url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const copyShareLink = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -158,31 +151,6 @@ export default function WatchView({ video, relatedVideos, onWatch, onBack, share
                 >
                   <ThumbsUp size={14} /> Like
                 </button>
-                <button
-                  onClick={copyUrl}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-semibold transition-colors"
-                  style={{ background: copied ? "#1a3d1a" : "#252525", color: copied ? "#5f5" : "#bbb" }}
-                >
-                  {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
-                  {copied ? "Copied" : "Copy URL"}
-                </button>
-                <a
-                  href={video.url}
-                  download
-                  className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-semibold transition-opacity hover:opacity-80"
-                  style={{ background: "#f30", color: "#fff" }}
-                >
-                  <Download size={14} /> Download
-                </a>
-                <a
-                  href={video.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-9 h-9 flex items-center justify-center rounded transition-colors hover:bg-white/10"
-                  style={{ background: "#252525", color: "#bbb" }}
-                >
-                  <ExternalLink size={14} />
-                </a>
               </div>
             </div>
           </div>
