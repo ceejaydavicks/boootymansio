@@ -15,78 +15,6 @@ function getShareUrl(shareId: string): string {
   return `${window.location.origin}${window.location.pathname}?v=${shareId}`;
 }
 
-const SAMPLE_VIDEOS: VideoItem[] = [
-  {
-    id: "sample-1",
-    shareId: "bbuck9x4r2",
-    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    type: "mp4",
-    label: "Direct Video",
-    source: "Google Sample Videos",
-    title: "Big Buck Bunny",
-    pageTitle: "Sample Videos",
-    extractedFrom: "https://goo.gl/sample",
-    extractedAt: Date.now() - 86400000 * 5,
-    views: 842317,
-    duration: "9:56",
-  },
-  {
-    id: "sample-2",
-    shareId: "eldream7w1",
-    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-    type: "mp4",
-    label: "Direct Video",
-    source: "Google Sample Videos",
-    title: "Elephants Dream",
-    pageTitle: "Sample Videos",
-    extractedFrom: "https://goo.gl/sample",
-    extractedAt: Date.now() - 86400000 * 4,
-    views: 519420,
-    duration: "10:54",
-  },
-  {
-    id: "sample-3",
-    shareId: "blaze5m8k3",
-    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    type: "mp4",
-    label: "Direct Video",
-    source: "Google Sample Videos",
-    title: "For Bigger Blazes",
-    pageTitle: "Sample Videos",
-    extractedFrom: "https://goo.gl/sample",
-    extractedAt: Date.now() - 86400000 * 3,
-    views: 293104,
-    duration: "0:15",
-  },
-  {
-    id: "sample-4",
-    shareId: "escap2p9z6",
-    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    type: "mp4",
-    label: "Direct Video",
-    source: "Google Sample Videos",
-    title: "For Bigger Escapes",
-    pageTitle: "Sample Videos",
-    extractedFrom: "https://goo.gl/sample",
-    extractedAt: Date.now() - 86400000 * 2,
-    views: 174882,
-    duration: "0:15",
-  },
-  {
-    id: "sample-5",
-    shareId: "subaru1q8n",
-    url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
-    type: "mp4",
-    label: "Direct Video",
-    source: "Google Sample Videos",
-    title: "Subaru Outback On Street And Dirt",
-    pageTitle: "Sample Videos",
-    extractedFrom: "https://goo.gl/sample",
-    extractedAt: Date.now() - 86400000 * 1,
-    views: 98651,
-    duration: "0:56",
-  },
-];
 
 export default function App() {
   const [publicMode, setPublicMode] = useState(false);
@@ -109,26 +37,24 @@ export default function App() {
       return;
     }
 
-    const saved = localStorage.getItem("vidtube_v2_library");
+    const saved = localStorage.getItem("vidtube_v3_library");
     if (saved) {
       try {
         const parsed: VideoItem[] = JSON.parse(saved);
-        if (parsed.length > 0) {
-          const withShareIds = parsed.map((v) => ({
-            ...v,
-            shareId: v.shareId || genShareId(),
-          }));
-          setAllVideos(withShareIds);
-          return;
-        }
-      } catch {}
+        const withShareIds = parsed.map((v) => ({
+          ...v,
+          shareId: v.shareId || genShareId(),
+        }));
+        setAllVideos(withShareIds);
+      } catch {
+        localStorage.removeItem("vidtube_v3_library");
+      }
     }
-    setAllVideos(SAMPLE_VIDEOS);
   }, []);
 
   useEffect(() => {
     if (!publicMode && allVideos.length > 0) {
-      localStorage.setItem("vidtube_v2_library", JSON.stringify(allVideos.slice(0, 300)));
+      localStorage.setItem("vidtube_v3_library", JSON.stringify(allVideos.slice(0, 300)));
     }
   }, [allVideos, publicMode]);
 
