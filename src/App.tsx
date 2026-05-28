@@ -28,9 +28,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "playmogo.com",
     title: "Pretty talented actress",
     extractedFrom: "https://playmogo.com/e/qyfyr7x4t0af",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 86400000,
     views: 0,
     thumbnail: "https://ticdn.net/splash/98vkekjaqkhvz17g.jpg",
+  },
+  {
+    id: "vid-car-2",
+    shareId: "car8z3n1xp",
+    url: "https://playmogo.com/e/xy66w7bsmdkw",
+    type: "embed",
+    label: "Embed Video",
+    source: "playmogo.com",
+    title: "Testing the new car",
+    extractedFrom: "https://playmogo.com/e/xy66w7bsmdkw",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/dxq8lr3yzjoiwber.jpg",
   },
 ];
 
@@ -64,7 +77,7 @@ export default function App() {
       return;
     }
 
-    const saved = localStorage.getItem("vidtube_v3_library");
+    const saved = localStorage.getItem("vidtube_v4_library");
     if (saved) {
       try {
         const parsed: VideoItem[] = JSON.parse(saved);
@@ -74,7 +87,7 @@ export default function App() {
         }));
         setAllVideos(withShareIds.length > 0 ? withShareIds : INITIAL_VIDEOS);
       } catch {
-        localStorage.removeItem("vidtube_v3_library");
+        localStorage.removeItem("vidtube_v4_library");
         setAllVideos(INITIAL_VIDEOS);
       }
     } else {
@@ -84,7 +97,7 @@ export default function App() {
 
   useEffect(() => {
     if (mode === "admin" && allVideos.length > 0) {
-      localStorage.setItem("vidtube_v3_library", JSON.stringify(allVideos.slice(0, 300)));
+      localStorage.setItem("vidtube_v4_library", JSON.stringify(allVideos.slice(0, 300)));
     }
   }, [allVideos, mode]);
 
