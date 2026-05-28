@@ -60,7 +60,11 @@ export default function VideoCard({ video, onWatch, shareUrl, compact = false }:
           className="relative flex-shrink-0 rounded overflow-hidden flex items-center justify-center"
           style={{ width: 120, aspectRatio: "16/9", background: grad }}
         >
-          <Film size={16} style={{ color: "rgba(255,255,255,0.15)" }} />
+          {video.thumbnail ? (
+            <img src={video.thumbnail} alt={video.title} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <Film size={16} style={{ color: "rgba(255,255,255,0.15)" }} />
+          )}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "rgba(0,0,0,0.5)" }}>
             <Play size={18} className="text-white fill-white" />
           </div>
@@ -86,7 +90,11 @@ export default function VideoCard({ video, onWatch, shareUrl, compact = false }:
           className="relative w-full rounded overflow-hidden flex items-center justify-center"
           style={{ aspectRatio: "16/9", background: grad }}
         >
-          <Film size={40} style={{ color: "rgba(255,255,255,0.08)" }} />
+          {video.thumbnail ? (
+            <img src={video.thumbnail} alt={video.title} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <Film size={40} style={{ color: "rgba(255,255,255,0.08)" }} />
+          )}
           <div
             className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             style={{ background: "rgba(0,0,0,0.55)" }}

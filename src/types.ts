@@ -11,6 +11,7 @@ export interface VideoItem {
   extractedAt: number;
   views?: number;
   duration?: string;
+  thumbnail?: string;
 }
 
 export interface Thumbnail {

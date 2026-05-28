@@ -16,6 +16,22 @@ function getShareUrl(shareId: string): string {
 }
 
 
+const INITIAL_VIDEOS: VideoItem[] = [
+  {
+    id: "vid-pta-1",
+    shareId: "pta9x2r7kw",
+    url: "https://playmogo.com/d/qyfyr7x4t0af",
+    type: "mp4",
+    label: "Direct Video",
+    source: "playmogo.com",
+    title: "Pretty talented actress",
+    extractedFrom: "https://playmogo.com/d/qyfyr7x4t0af",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/98vkekjaqkhvz17g.jpg",
+  },
+];
+
 export default function App() {
   const [publicMode, setPublicMode] = useState(false);
   const [publicShareId, setPublicShareId] = useState<string | null>(null);
@@ -45,10 +61,13 @@ export default function App() {
           ...v,
           shareId: v.shareId || genShareId(),
         }));
-        setAllVideos(withShareIds);
+        setAllVideos(withShareIds.length > 0 ? withShareIds : INITIAL_VIDEOS);
       } catch {
         localStorage.removeItem("vidtube_v3_library");
+        setAllVideos(INITIAL_VIDEOS);
       }
+    } else {
+      setAllVideos(INITIAL_VIDEOS);
     }
   }, []);
 
