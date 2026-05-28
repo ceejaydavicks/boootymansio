@@ -41,9 +41,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "cdn.videy.co",
     title: "Testing the new SUV",
     extractedFrom: "https://cdn.videy.co/tN1S51Zy1.mp4",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 3600000,
     views: 0,
     thumbnail: "https://ticdn.net/splash/dxq8lr3yzjoiwber.jpg",
+  },
+  {
+    id: "vid-cms-1",
+    shareId: "cms7n4p8qr",
+    url: "https://cdn2.videy.co/ieEPn7hB1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn2.videy.co",
+    title: "When comfort meets style",
+    extractedFrom: "https://cdn2.videy.co/ieEPn7hB1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/1pc18gn7arpo1jtq.jpg",
   },
 ];
 
