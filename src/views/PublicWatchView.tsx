@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Play, Copy, CheckCircle2, Download, ExternalLink, Link2, AlertTriangle } from "lucide-react";
-import { isEmbedUrl } from "../utils/player";
+import { Copy, CheckCircle2, Download, ExternalLink, Link2, AlertTriangle } from "lucide-react";
+import VideoPlayer from "../components/VideoPlayer";
 import { VideoItem } from "../types";
 
 interface PublicWatchViewProps {
@@ -82,25 +82,7 @@ export default function PublicWatchView({ video, shareUrl }: PublicWatchViewProp
               className="w-full rounded-lg overflow-hidden"
               style={{ background: "#000", aspectRatio: "16/9" }}
             >
-              {isEmbedUrl(video.url) ? (
-                <iframe
-                  key={video.url}
-                  src={video.url}
-                  allowFullScreen
-                  allow="autoplay; fullscreen"
-                  className="w-full h-full"
-                  style={{ display: "block", border: "none" }}
-                />
-              ) : (
-                <video
-                  key={video.url}
-                  src={video.url}
-                  controls
-                  autoPlay
-                  className="w-full h-full"
-                  style={{ display: "block" }}
-                />
-              )}
+              <VideoPlayer url={video.url} thumbnail={video.thumbnail} title={video.title} />
             </div>
 
             <div className="mt-4">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Download, Copy, CheckCircle2, ChevronLeft, Loader2, AlertCircle, ExternalLink, Image, Scissors, Clock, ThumbsUp, Link2 } from "lucide-react";
-import { isEmbedUrl } from "../utils/player";
+import VideoPlayer from "../components/VideoPlayer";
 import { VideoItem, Thumbnail } from "../types";
 import VideoCard from "../components/VideoCard";
 
@@ -101,25 +101,7 @@ export default function WatchView({ video, relatedVideos, onWatch, onBack, share
             className="w-full rounded-lg overflow-hidden"
             style={{ background: "#000", aspectRatio: "16/9" }}
           >
-            {isEmbedUrl(video.url) ? (
-              <iframe
-                key={video.url}
-                src={video.url}
-                allowFullScreen
-                allow="autoplay; fullscreen"
-                className="w-full h-full"
-                style={{ display: "block", border: "none" }}
-              />
-            ) : (
-              <video
-                key={video.url}
-                src={video.url}
-                controls
-                autoPlay
-                className="w-full h-full"
-                style={{ display: "block" }}
-              />
-            )}
+            <VideoPlayer url={video.url} thumbnail={video.thumbnail} title={video.title} />
           </div>
 
           <div className="mt-4">
