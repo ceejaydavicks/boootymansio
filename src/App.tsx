@@ -21,7 +21,7 @@ const INITIAL_VIDEOS: VideoItem[] = [
     id: "vid-pta-1",
     shareId: "pta9x2r7kw",
     url: "https://playmogo.com/d/qyfyr7x4t0af",
-    type: "mp4",
+    type: "embed",
     label: "Direct Video",
     source: "playmogo.com",
     title: "Pretty talented actress",
@@ -50,7 +50,6 @@ export default function App() {
     if (vParam) {
       setPublicMode(true);
       setPublicShareId(vParam);
-      return;
     }
 
     const saved = localStorage.getItem("vidtube_v3_library");
