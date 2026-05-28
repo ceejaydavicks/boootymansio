@@ -1,4 +1,5 @@
-import { Play, Film } from "lucide-react";
+import { useState } from "react";
+import { Play, Film, Link2, CheckCircle2 } from "lucide-react";
 import { VideoItem } from "../types";
 
 const GRADIENTS: Record<string, string> = {
@@ -28,12 +29,25 @@ function timeAgo(ts: number) {
 interface VideoCardProps {
   video: VideoItem;
   onWatch: (video: VideoItem) => void;
+  shareUrl?: string;
   compact?: boolean;
 }
 
-export default function VideoCard({ video, onWatch, compact = false }: VideoCardProps) {
+export default function VideoCard({ video, onWatch, shareUrl, compact = false }: VideoCardProps) {
+  const [copied, setCopied] = useState(false);
   const grad = GRADIENTS[video.type?.toLowerCase()] || GRADIENTS.default;
-  const domain = (() => { try { return new URL(video.extractedFrom || "").hostname.replace("www.", ""); } catch { return video.source || "unknown"; } })();
+  const domain = (() => {
+    try { return new URL(video.extractedFrom || "").hostname.replace("www.", ""); }
+    catch { return video.source || "unknown"; }
+  })();
+
+  const copyShareLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!shareUrl) return;
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
 
   if (compact) {
     return (
@@ -50,18 +64,12 @@ export default function VideoCard({ video, onWatch, compact = false }: VideoCard
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "rgba(0,0,0,0.5)" }}>
             <Play size={18} className="text-white fill-white" />
           </div>
-          <span
-            className="absolute bottom-1 right-1 text-white font-bold"
-            style={{ background: "rgba(0,0,0,0.8)", fontSize: 9, padding: "1px 4px", borderRadius: 2 }}
-          >
+          <span className="absolute bottom-1 right-1 text-white font-bold" style={{ background: "rgba(0,0,0,0.8)", fontSize: 9, padding: "1px 4px", borderRadius: 2 }}>
             {video.type?.toUpperCase() || "?"}
           </span>
         </div>
         <div className="flex-1 min-w-0 py-0.5">
-          <p
-            className="font-semibold leading-snug line-clamp-2 group-hover:text-[#f30] transition-colors"
-            style={{ fontSize: 13, color: "#ddd" }}
-          >
+          <p className="font-semibold leading-snug line-clamp-2 group-hover:text-[#f30] transition-colors" style={{ fontSize: 13, color: "#ddd" }}>
             {video.title}
           </p>
           <p className="text-xs mt-1 truncate" style={{ color: "#666" }}>{domain}</p>
@@ -72,50 +80,56 @@ export default function VideoCard({ video, onWatch, compact = false }: VideoCard
   }
 
   return (
-    <div onClick={() => onWatch(video)} className="cursor-pointer group">
-      <div
-        className="relative w-full rounded overflow-hidden flex items-center justify-center"
-        style={{ aspectRatio: "16/9", background: grad }}
-      >
-        <Film size={40} style={{ color: "rgba(255,255,255,0.08)" }} />
+    <div className="group" style={{ position: "relative" }}>
+      <div onClick={() => onWatch(video)} className="cursor-pointer">
         <div
-          className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ background: "rgba(0,0,0,0.55)" }}
+          className="relative w-full rounded overflow-hidden flex items-center justify-center"
+          style={{ aspectRatio: "16/9", background: grad }}
         >
-          <div className="w-14 h-14 flex items-center justify-center rounded-full" style={{ background: "rgba(255,51,0,0.9)" }}>
-            <Play size={22} className="text-white fill-white ml-0.5" />
+          <Film size={40} style={{ color: "rgba(255,255,255,0.08)" }} />
+          <div
+            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ background: "rgba(0,0,0,0.55)" }}
+          >
+            <div className="w-14 h-14 flex items-center justify-center rounded-full" style={{ background: "rgba(255,51,0,0.9)" }}>
+              <Play size={22} className="text-white fill-white ml-0.5" />
+            </div>
           </div>
+          <span className="absolute top-2 left-2 font-bold text-white" style={{ background: "#f30", fontSize: 10, padding: "2px 6px", borderRadius: 2 }}>
+            {video.type?.toUpperCase() || "VID"}
+          </span>
+          <span className="absolute bottom-2 right-2 text-white font-bold" style={{ background: "rgba(0,0,0,0.8)", fontSize: 10, padding: "2px 5px", borderRadius: 2 }}>
+            {video.duration || "—"}
+          </span>
+          <div className="absolute inset-x-0 bottom-0 h-8 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }} />
         </div>
-        <span
-          className="absolute top-2 left-2 font-bold text-white"
-          style={{ background: "#f30", fontSize: 10, padding: "2px 6px", borderRadius: 2 }}
-        >
-          {video.type?.toUpperCase() || "VID"}
-        </span>
-        <span
-          className="absolute bottom-2 right-2 text-white font-bold"
-          style={{ background: "rgba(0,0,0,0.8)", fontSize: 10, padding: "2px 5px", borderRadius: 2 }}
-        >
-          {video.duration || "—"}
-        </span>
-        <div
-          className="absolute inset-x-0 bottom-0 h-8 pointer-events-none"
-          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }}
-        />
-      </div>
-      <div className="pt-2 pb-1 px-0.5">
-        <h3
-          className="font-semibold leading-snug line-clamp-2 group-hover:text-[#f30] transition-colors"
-          style={{ fontSize: 13, color: "#e0e0e0" }}
-        >
-          {video.title}
-        </h3>
-        <div className="flex items-center justify-between mt-1">
-          <span className="text-xs truncate" style={{ color: "#777", maxWidth: "70%" }}>{domain}</span>
-          <span className="text-xs" style={{ color: "#555" }}>{formatViews(video.views || 0)}</span>
+        <div className="pt-2 pb-1 px-0.5">
+          <h3 className="font-semibold leading-snug line-clamp-2 group-hover:text-[#f30] transition-colors" style={{ fontSize: 13, color: "#e0e0e0" }}>
+            {video.title}
+          </h3>
+          <div className="flex items-center justify-between mt-1">
+            <span className="text-xs truncate" style={{ color: "#777", maxWidth: "70%" }}>{domain}</span>
+            <span className="text-xs" style={{ color: "#555" }}>{formatViews(video.views || 0)}</span>
+          </div>
+          <p className="text-xs mt-0.5" style={{ color: "#555" }}>{timeAgo(video.extractedAt)}</p>
         </div>
-        <p className="text-xs mt-0.5" style={{ color: "#555" }}>{timeAgo(video.extractedAt)}</p>
       </div>
+
+      {shareUrl && (
+        <button
+          onClick={copyShareLink}
+          title="Copy unique share link"
+          className="flex items-center gap-1.5 w-full mt-1 px-2 py-1.5 rounded text-xs font-medium transition-all opacity-0 group-hover:opacity-100"
+          style={{
+            background: copied ? "rgba(0,180,80,0.15)" : "rgba(255,51,0,0.1)",
+            border: `1px solid ${copied ? "rgba(0,180,80,0.3)" : "rgba(255,51,0,0.2)"}`,
+            color: copied ? "#4d4" : "#f30",
+          }}
+        >
+          {copied ? <CheckCircle2 size={11} /> : <Link2 size={11} />}
+          {copied ? "Link copied!" : "Copy unique link"}
+        </button>
+      )}
     </div>
   );
 }

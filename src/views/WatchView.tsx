@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Copy, CheckCircle2, ChevronLeft, Loader2, AlertCircle, ExternalLink, Image, Scissors, Clock, ThumbsUp, Share2 } from "lucide-react";
+import { Download, Copy, CheckCircle2, ChevronLeft, Loader2, AlertCircle, ExternalLink, Image, Scissors, Clock, ThumbsUp, Link2 } from "lucide-react";
 import { VideoItem, Thumbnail } from "../types";
 import VideoCard from "../components/VideoCard";
 
@@ -8,6 +8,7 @@ interface WatchViewProps {
   relatedVideos: VideoItem[];
   onWatch: (video: VideoItem) => void;
   onBack: () => void;
+  shareUrl: string;
 }
 
 function formatViews(n: number) {
@@ -16,8 +17,9 @@ function formatViews(n: number) {
   return String(n);
 }
 
-export default function WatchView({ video, relatedVideos, onWatch, onBack }: WatchViewProps) {
+export default function WatchView({ video, relatedVideos, onWatch, onBack, shareUrl }: WatchViewProps) {
   const [copied, setCopied] = useState(false);
+  const [copiedShare, setCopiedShare] = useState(false);
   const [activePanel, setActivePanel] = useState<"thumb" | "clip" | null>(null);
 
   const [thumbLoading, setThumbLoading] = useState(false);
@@ -38,6 +40,12 @@ export default function WatchView({ video, relatedVideos, onWatch, onBack }: Wat
     navigator.clipboard.writeText(video.url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopiedShare(true);
+    setTimeout(() => setCopiedShare(false), 2500);
   };
 
   const formatTime = (s: string) => {
@@ -116,7 +124,19 @@ export default function WatchView({ video, relatedVideos, onWatch, onBack }: Wat
                   {video.type || "video"}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={copyShareLink}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-semibold transition-all"
+                  style={{
+                    background: copiedShare ? "rgba(0,180,80,0.15)" : "rgba(255,51,0,0.12)",
+                    border: `1px solid ${copiedShare ? "rgba(0,180,80,0.4)" : "rgba(255,51,0,0.35)"}`,
+                    color: copiedShare ? "#4d4" : "#f30",
+                  }}
+                >
+                  {copiedShare ? <CheckCircle2 size={14} /> : <Link2 size={14} />}
+                  {copiedShare ? "Link Copied!" : "Copy Share Link"}
+                </button>
                 <button
                   className="flex items-center gap-1.5 px-3 py-2 rounded text-sm font-semibold transition-colors hover:opacity-80"
                   style={{ background: "#252525", color: "#bbb" }}

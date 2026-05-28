@@ -4,11 +4,21 @@ import Header from "./components/Header";
 import HomeView from "./views/HomeView";
 import WatchView from "./views/WatchView";
 import ToolsView from "./views/ToolsView";
+import PublicWatchView from "./views/PublicWatchView";
 import AddUrlModal from "./components/AddUrlModal";
+
+function genShareId(): string {
+  return Math.random().toString(36).slice(2, 7) + Math.random().toString(36).slice(2, 7);
+}
+
+function getShareUrl(shareId: string): string {
+  return `${window.location.origin}${window.location.pathname}?v=${shareId}`;
+}
 
 const SAMPLE_VIDEOS: VideoItem[] = [
   {
     id: "sample-1",
+    shareId: "bbuck9x4r2",
     url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
     type: "mp4",
     label: "Direct Video",
@@ -22,6 +32,7 @@ const SAMPLE_VIDEOS: VideoItem[] = [
   },
   {
     id: "sample-2",
+    shareId: "eldream7w1",
     url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
     type: "mp4",
     label: "Direct Video",
@@ -35,6 +46,7 @@ const SAMPLE_VIDEOS: VideoItem[] = [
   },
   {
     id: "sample-3",
+    shareId: "blaze5m8k3",
     url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     type: "mp4",
     label: "Direct Video",
@@ -48,6 +60,7 @@ const SAMPLE_VIDEOS: VideoItem[] = [
   },
   {
     id: "sample-4",
+    shareId: "escap2p9z6",
     url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
     type: "mp4",
     label: "Direct Video",
@@ -61,6 +74,7 @@ const SAMPLE_VIDEOS: VideoItem[] = [
   },
   {
     id: "sample-5",
+    shareId: "subaru1q8n",
     url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
     type: "mp4",
     label: "Direct Video",
@@ -75,9 +89,10 @@ const SAMPLE_VIDEOS: VideoItem[] = [
 ];
 
 export default function App() {
+  const [publicMode, setPublicMode] = useState(false);
+  const [publicShareId, setPublicShareId] = useState<string | null>(null);
   const [page, setPage] = useState<Page>("home");
   const [allVideos, setAllVideos] = useState<VideoItem[]>([]);
-  const [currentVideos, setCurrentVideos] = useState<VideoItem[]>([]);
   const [currentVideo, setCurrentVideo] = useState<VideoItem | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [extractLoading, setExtractLoading] = useState(false);
@@ -86,12 +101,24 @@ export default function App() {
   const [sortBy, setSortBy] = useState<"new" | "az">("new");
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const vParam = params.get("v");
+    if (vParam) {
+      setPublicMode(true);
+      setPublicShareId(vParam);
+      return;
+    }
+
     const saved = localStorage.getItem("vidtube_v2_library");
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed: VideoItem[] = JSON.parse(saved);
         if (parsed.length > 0) {
-          setAllVideos(parsed);
+          const withShareIds = parsed.map((v) => ({
+            ...v,
+            shareId: v.shareId || genShareId(),
+          }));
+          setAllVideos(withShareIds);
           return;
         }
       } catch {}
@@ -99,10 +126,11 @@ export default function App() {
     setAllVideos(SAMPLE_VIDEOS);
   }, []);
 
-  const saveVideos = (videos: VideoItem[]) => {
-    setAllVideos(videos);
-    localStorage.setItem("vidtube_v2_library", JSON.stringify(videos.slice(0, 300)));
-  };
+  useEffect(() => {
+    if (!publicMode && allVideos.length > 0) {
+      localStorage.setItem("vidtube_v2_library", JSON.stringify(allVideos.slice(0, 300)));
+    }
+  }, [allVideos, publicMode]);
 
   const handleExtract = async (url: string, mode: "fast" | "deep" = "fast") => {
     setExtractLoading(true);
@@ -118,6 +146,7 @@ export default function App() {
 
       const newVideos: VideoItem[] = (data.results || []).map((r: any) => ({
         id: Math.random().toString(36).slice(2),
+        shareId: genShareId(),
         url: r.url,
         type: r.type?.toLowerCase() || "video",
         label: r.label,
@@ -130,15 +159,13 @@ export default function App() {
       }));
 
       if (newVideos.length === 0) {
-        setExtractError("No videos found on this page. Try switching to Deep mode for JavaScript-heavy sites.");
+        setExtractError("No videos found. Try switching to Deep mode for JavaScript-heavy sites.");
         return;
       }
 
       const existingUrls = new Set(allVideos.map((v) => v.url));
       const fresh = newVideos.filter((v) => !existingUrls.has(v.url));
-      const updated = [...fresh, ...allVideos];
-      saveVideos(updated);
-      setCurrentVideos(newVideos);
+      setAllVideos((prev) => [...fresh, ...prev]);
       setExtractError(null);
       setShowAddModal(false);
     } catch (e: any) {
@@ -152,21 +179,26 @@ export default function App() {
     setCurrentVideo(video);
     setPage("watch");
     window.scrollTo({ top: 0, behavior: "smooth" });
-    const updated = allVideos.map((v) =>
-      v.id === video.id ? { ...v, views: (v.views || 0) + 1 } : v
+    setAllVideos((prev) =>
+      prev.map((v) => (v.id === video.id ? { ...v, views: (v.views || 0) + 1 } : v))
     );
-    saveVideos(updated);
   };
 
   const handleSearch = (query: string) => {
     if (query.startsWith("http")) {
       handleExtract(query);
-      setShowAddModal(false);
     }
   };
 
-  const categories = ["all", ...Array.from(new Set(allVideos.map((v) => v.type).filter(Boolean)))];
+  if (publicMode) {
+    const video = allVideos.find((v) => v.shareId === publicShareId)
+      || SAMPLE_VIDEOS.find((v) => v.shareId === publicShareId)
+      || null;
+    const shareUrl = publicShareId ? getShareUrl(publicShareId) : "";
+    return <PublicWatchView video={video} shareUrl={shareUrl} />;
+  }
 
+  const categories = ["all", ...Array.from(new Set(allVideos.map((v) => v.type).filter(Boolean)))];
   const displayVideos = allVideos
     .filter((v) => activeCategory === "all" || v.type === activeCategory)
     .sort((a, b) => sortBy === "new" ? b.extractedAt - a.extractedAt : a.title.localeCompare(b.title));
@@ -176,7 +208,7 @@ export default function App() {
       <Header
         onSearch={handleSearch}
         onAddUrl={() => setShowAddModal(true)}
-        onHome={() => { setPage("home"); }}
+        onHome={() => setPage("home")}
         onTools={() => setPage("tools")}
       />
 
@@ -191,6 +223,7 @@ export default function App() {
           onSortChange={setSortBy}
           onWatch={handleWatch}
           onAddUrl={() => setShowAddModal(true)}
+          getShareUrl={(v) => getShareUrl(v.shareId)}
         />
       )}
       {page === "watch" && currentVideo && (
@@ -199,6 +232,7 @@ export default function App() {
           relatedVideos={allVideos.filter((v) => v.id !== currentVideo.id)}
           onWatch={handleWatch}
           onBack={() => setPage("home")}
+          shareUrl={getShareUrl(currentVideo.shareId)}
         />
       )}
       {page === "tools" && (

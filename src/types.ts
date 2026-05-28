@@ -1,5 +1,6 @@
 export interface VideoItem {
   id: string;
+  shareId: string;
   url: string;
   type: string;
   label: string;
