@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { Play, Copy, CheckCircle2, Download, ExternalLink, Link2, AlertTriangle } from "lucide-react";
+import { Play, Copy, CheckCircle2, Download, ExternalLink, Link2, AlertTriangle, Zap, Gift } from "lucide-react";
 import { isEmbedUrl } from "../utils/player";
 import { VideoItem } from "../types";
+import NativeAd from "../components/NativeAd";
+
+const SMART_LINK = "https://www.effectivecpmnetwork.com/h9xw8i8f?key=1419765068d7b1dbd1e3d5e01e3b7a94";
 
 interface PublicWatchViewProps {
   video: VideoItem | null;
@@ -173,8 +176,31 @@ export default function PublicWatchView({ video, shareUrl }: PublicWatchViewProp
                 </a>
               </div>
 
+              <div className="flex gap-3 mt-5 flex-wrap">
+                <a
+                  href={SMART_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-5 py-3 rounded text-sm font-bold transition-opacity hover:opacity-90 flex-1 justify-center"
+                  style={{ background: "linear-gradient(90deg,#ff6a00,#f30)", color: "#fff" }}
+                >
+                  <Zap size={16} /> Watch Full Video
+                </a>
+                <a
+                  href={SMART_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-5 py-3 rounded text-sm font-bold transition-opacity hover:opacity-90 flex-1 justify-center"
+                  style={{ background: "linear-gradient(90deg,#7b2ff7,#f107a3)", color: "#fff" }}
+                >
+                  <Gift size={16} /> Get Full Access Free
+                </a>
+              </div>
+
+              <NativeAd />
+
               <div
-                className="mt-6 p-4 rounded-lg flex items-center gap-3"
+                className="mt-2 p-4 rounded-lg flex items-center gap-3"
                 style={{ background: "#161616", border: "1px solid #222" }}
               >
                 <Link2 size={16} style={{ color: "#f30", flexShrink: 0 }} />

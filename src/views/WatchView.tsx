@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { Download, Copy, CheckCircle2, ChevronLeft, Loader2, AlertCircle, ExternalLink, Image, Scissors, Clock, ThumbsUp, Link2 } from "lucide-react";
+import { Download, Copy, CheckCircle2, ChevronLeft, Loader2, AlertCircle, ExternalLink, Image, Scissors, Clock, ThumbsUp, Link2, Zap, Gift } from "lucide-react";
 import { isEmbedUrl } from "../utils/player";
 import { VideoItem, Thumbnail } from "../types";
 import VideoCard from "../components/VideoCard";
+import NativeAd from "../components/NativeAd";
+
+const SMART_LINK = "https://www.effectivecpmnetwork.com/h9xw8i8f?key=1419765068d7b1dbd1e3d5e01e3b7a94";
 
 interface WatchViewProps {
   video: VideoItem;
@@ -184,7 +187,30 @@ export default function WatchView({ video, relatedVideos, onWatch, onBack, share
             </div>
           </div>
 
-          <div className="flex gap-2 mt-4 flex-wrap" style={{ borderTop: "1px solid #222", paddingTop: 16 }}>
+          <div className="flex gap-3 mt-4 flex-wrap" style={{ borderTop: "1px solid #222", paddingTop: 16 }}>
+            <a
+              href={SMART_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded text-sm font-bold transition-opacity hover:opacity-90"
+              style={{ background: "linear-gradient(90deg,#ff6a00,#f30)", color: "#fff", flexShrink: 0 }}
+            >
+              <Zap size={15} /> Watch Full Video
+            </a>
+            <a
+              href={SMART_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-5 py-2.5 rounded text-sm font-bold transition-opacity hover:opacity-90"
+              style={{ background: "linear-gradient(90deg,#7b2ff7,#f107a3)", color: "#fff", flexShrink: 0 }}
+            >
+              <Gift size={15} /> Get Full Access Free
+            </a>
+          </div>
+
+          <NativeAd />
+
+          <div className="flex gap-2 mt-2 flex-wrap" style={{ borderTop: "1px solid #222", paddingTop: 16 }}>
             <button
               onClick={() => setActivePanel(activePanel === "thumb" ? null : "thumb")}
               className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold transition-colors"
