@@ -80,9 +80,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "cdn.videy.co",
     title: "I stay quiet… but y'all stay watching 😭👀",
     extractedFrom: "https://cdn.videy.co/fmZakeUC1.mp4",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 3600000,
     views: 0,
     thumbnail: "https://ticdn.net/snaps/59x1iw7iock7ewfe.jpg",
+  },
+  {
+    id: "vid-abt-1",
+    shareId: "abt4r2k7pz",
+    url: "https://cdn.videy.co/Xg53OzLk1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn.videy.co",
+    title: "Auntie being way too flirtatious.mp4",
+    extractedFrom: "https://cdn.videy.co/Xg53OzLk1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/fwpwi8yp0l7wc2qb.jpg",
   },
 ];
 
