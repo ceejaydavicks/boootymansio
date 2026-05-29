@@ -67,9 +67,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "cdn2.videy.co",
     title: "The moment she stepped in, the entire energy shifted 🫦",
     extractedFrom: "https://cdn2.videy.co/DzL0U21o1.mp4",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 3600000,
     views: 0,
     thumbnail: "https://ticdn.net/snaps/ir46rsasdbvix9xl.jpg",
+  },
+  {
+    id: "vid-sqw-1",
+    shareId: "sqw5h3x9bm",
+    url: "https://cdn.videy.co/fmZakeUC1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn.videy.co",
+    title: "I stay quiet… but y'all stay watching 😭👀",
+    extractedFrom: "https://cdn.videy.co/fmZakeUC1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/snaps/59x1iw7iock7ewfe.jpg",
   },
 ];
 
