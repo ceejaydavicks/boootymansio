@@ -93,9 +93,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "cdn.videy.co",
     title: "Auntie being way too flirtatious.mp4",
     extractedFrom: "https://cdn.videy.co/Xg53OzLk1.mp4",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 3600000,
     views: 0,
     thumbnail: "https://ticdn.net/splash/fwpwi8yp0l7wc2qb.jpg",
+  },
+  {
+    id: "vid-lkg-1",
+    shareId: "lkg8v5n2wq",
+    url: "https://cdn.videy.co/86ShoErv1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn.videy.co",
+    title: "Lowkey gorgeous. Highkey aware. 😌",
+    extractedFrom: "https://cdn.videy.co/86ShoErv1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/tthjq9j8uacwqufa.jpg",
   },
 ];
 
