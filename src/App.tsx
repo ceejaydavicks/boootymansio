@@ -119,9 +119,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "cdn.videy.co",
     title: "morning workout with the clown 😭",
     extractedFrom: "https://cdn.videy.co/FcA80E4v1.mp4",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 3600000,
     views: 0,
     thumbnail: "https://ticdn.net/splash/4voze5t1zn04gd3m.jpg",
+  },
+  {
+    id: "vid-abt-2",
+    shareId: "abt2p8m5vk",
+    url: "https://cdn.videy.co/UcnEsABO1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn.videy.co",
+    title: "Wait till you see how Auntie does bath time 😍👇",
+    extractedFrom: "https://cdn.videy.co/UcnEsABO1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/evsturd1u9rtfwxy.jpg",
   },
 ];
 
