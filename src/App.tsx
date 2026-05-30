@@ -106,9 +106,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "cdn.videy.co",
     title: "Lowkey gorgeous. Highkey aware. 😌",
     extractedFrom: "https://cdn.videy.co/86ShoErv1.mp4",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 3600000,
     views: 0,
     thumbnail: "https://ticdn.net/splash/tthjq9j8uacwqufa.jpg",
+  },
+  {
+    id: "vid-mwc-1",
+    shareId: "mwc9j6t3yx",
+    url: "https://cdn.videy.co/FcA80E4v1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn.videy.co",
+    title: "morning workout with the clown 😭",
+    extractedFrom: "https://cdn.videy.co/FcA80E4v1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/4voze5t1zn04gd3m.jpg",
   },
 ];
 
