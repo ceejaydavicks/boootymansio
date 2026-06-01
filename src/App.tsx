@@ -145,9 +145,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "cdn.videy.co",
     title: "Just getting started 😮‍💨✨",
     extractedFrom: "https://cdn.videy.co/SxJ1gXsa1.mp4",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 3600000,
     views: 0,
     thumbnail: "https://ticdn.net/splash/evsturd1u9rtfwxy.jpg",
+  },
+  {
+    id: "vid-wml-1",
+    shareId: "wml6d4n8qs",
+    url: "https://cdn.videy.co/FiqKwunM1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn.videy.co",
+    title: "Why he move like that?! 😭 Too smooth for my comfort 🔥",
+    extractedFrom: "https://cdn.videy.co/FiqKwunM1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/3cpvo5pjji816nns.jpg",
   },
 ];
 
