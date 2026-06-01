@@ -184,9 +184,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "cdn.videy.co",
     title: "She stepped in and the whole vibe changed 😍✨",
     extractedFrom: "https://cdn.videy.co/gsOBiYJQ1.mp4",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 3600000,
     views: 0,
     thumbnail: "https://ticdn.net/snaps/auhui4nlcjxaqi9a.jpg",
+  },
+  {
+    id: "vid-sii-1",
+    shareId: "sii5n3p7xm",
+    url: "https://cdn.videy.co/kG9tOw0e1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn.videy.co",
+    title: "Soak it in while it lasts 😌✨",
+    extractedFrom: "https://cdn.videy.co/kG9tOw0e1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/syxgw6yo0rbrv5dc.jpg",
   },
 ];
 
