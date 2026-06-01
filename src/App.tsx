@@ -171,9 +171,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "cdn.videy.co",
     title: "She said look but don't touch… so why am I sweating? 😭😌",
     extractedFrom: "https://cdn.videy.co/WpX7tNRi1.mp4",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 3600000,
     views: 0,
     thumbnail: "https://ticdn.net/splash/swnbb46warnq3rfh.jpg",
+  },
+  {
+    id: "vid-ssv-1",
+    shareId: "ssv4h8m2kp",
+    url: "https://cdn.videy.co/gsOBiYJQ1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn.videy.co",
+    title: "She stepped in and the whole vibe changed 😍✨",
+    extractedFrom: "https://cdn.videy.co/gsOBiYJQ1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/snaps/auhui4nlcjxaqi9a.jpg",
   },
 ];
 
