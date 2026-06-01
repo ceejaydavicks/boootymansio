@@ -158,9 +158,22 @@ const INITIAL_VIDEOS: VideoItem[] = [
     source: "cdn.videy.co",
     title: "Why he move like that?! 😭 Too smooth for my comfort 🔥",
     extractedFrom: "https://cdn.videy.co/FiqKwunM1.mp4",
-    extractedAt: Date.now(),
+    extractedAt: Date.now() - 3600000,
     views: 0,
     thumbnail: "https://ticdn.net/splash/3cpvo5pjji816nns.jpg",
+  },
+  {
+    id: "vid-sld-1",
+    shareId: "sld7f2k9wr",
+    url: "https://cdn.videy.co/WpX7tNRi1.mp4",
+    type: "mp4",
+    label: "Direct Video",
+    source: "cdn.videy.co",
+    title: "She said look but don't touch… so why am I sweating? 😭😌",
+    extractedFrom: "https://cdn.videy.co/WpX7tNRi1.mp4",
+    extractedAt: Date.now(),
+    views: 0,
+    thumbnail: "https://ticdn.net/splash/swnbb46warnq3rfh.jpg",
   },
 ];
 
